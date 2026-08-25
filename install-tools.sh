@@ -82,6 +82,28 @@ else
   yay -S --needed --noconfirm "${missing_yay_packages[@]}"
 fi
 
+sddm_theme_dir="/usr/share/sddm/themes/sddm-astronaut-theme"
+sddm_theme_repo="https://github.com/Keyitdev/sddm-astronaut-theme.git"
+
+printf 'Installing the SDDM astronaut theme.\n'
+if [[ -d $sddm_theme_dir/.git ]]; then
+  sudo git -C "$sddm_theme_dir" pull --ff-only
+else
+  sudo git clone --depth 1 "$sddm_theme_repo" "$sddm_theme_dir"
+fi
+
+sudo cp -r "$sddm_theme_dir/Fonts/." /usr/share/fonts/
+sudo sed -i \
+  's|^ConfigFile=.*|ConfigFile=Themes/japanese_aesthetic.conf|' \
+  "$sddm_theme_dir/metadata.desktop"
+
+sudo install -d -m 0755 /etc/sddm.conf.d
+printf '[Theme]\nCurrent=sddm-astronaut-theme\n' |
+  sudo tee /etc/sddm.conf.d/10-sddm-theme.conf >/dev/null
+printf '[General]\nInputMethod=qtvirtualkeyboard\n' |
+  sudo tee /etc/sddm.conf.d/20-sddm-virtual-keyboard.conf >/dev/null
+sudo systemctl enable sddm.service
+
 hypr_config="$HOME/.config/hypr/hyprland.lua"
 fish_config="$HOME/.config/fish/config.fish"
 
