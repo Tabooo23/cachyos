@@ -1,5 +1,9 @@
 local mainMod = "SUPER"
 
+-- Start desktop services after the Wayland socket is ready.
+hl.exec_cmd("sh -c 'sleep 1; exec waybar'")
+hl.exec_cmd("sh -c 'sleep 1; exec hyprpaper'")
+
 local function launch(command)
     return function()
         hl.exec_cmd(command)

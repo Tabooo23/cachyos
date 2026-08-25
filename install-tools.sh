@@ -119,7 +119,7 @@ if [[ -f $hypr_config ]]; then
     -e 's/local terminal    = "kitty"/local terminal    = "alacritty"/' \
     -e 's/local fileManager = "dolphin"/local fileManager = "nemo"/' \
     -e 's/local menu        = "hyprlauncher"/local menu        = "wofi --show drun"/' \
-    -e 's/kb_layout  = "us"/kb_layout  = "de"/' \
+     -e 's/kb_layout[[:space:]]*=[[:space:]]*"[^"]*"/kb_layout = "de"/' \
     -e 's/local mainMod = "ALT".*/local mainMod = "SUPER"/' \
     -e 's/hl.bind(mainMod \.\. " + Q", hl.dsp.exec_cmd(terminal))/hl.bind(mainMod .. " + Q", hl.dsp.window.close())/' \
     -e 's/hl.bind(mainMod \.\. " + S",.*hl.dsp.workspace.toggle_special("magic"))/hl.bind(mainMod .. " + S", hl.dsp.exec_cmd("hypr-shortcuts"))/' \
@@ -137,21 +137,9 @@ if [[ -f $hypr_config ]]; then
     sed -i '/mainMod \.\. " + Space"/a hl.bind(mainMod .. " + S", hl.dsp.exec_cmd("hypr-shortcuts"))' "$hypr_config"
   fi
 
-  if ! grep -Fq 'hl.exec_cmd("waybar")' "$hypr_config"; then
-    sed -i '/Configuring\/Basics\/Autostart/a\
-\
-hl.on("hyprland.start", function()\
-    hl.exec_cmd("waybar")\
-end)' "$hypr_config"
-  fi
-
-  if ! grep -Fq 'hl.exec_cmd("hyprpaper")' "$hypr_config"; then
-    sed -i '/Configuring\/Basics\/Autostart/a\
-\
-hl.on("hyprland.start", function()\
-    hl.exec_cmd("hyprpaper")\
-end)' "$hypr_config"
-  fi
+  # Remove startup callbacks from older installer versions. Startup is handled
+  # by installer-shortcuts.lua after the Hyprland config has loaded.
+  sed -i '/hl\.on("hyprland\.start", function()/,+2d' "$hypr_config"
 
   if ! grep -Fq 'name = "shortcut-viewer"' "$hypr_config"; then
     sed -i '/-- Layer rules also return a handle\./i\
