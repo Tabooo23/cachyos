@@ -3,6 +3,7 @@
 set -euo pipefail
 
 script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+wallpaper_source="$script_dir/wallpaper.png"
 
 if [[ ! -r /etc/os-release ]]; then
   printf 'Error: cannot identify this Linux distribution.\n' >&2
@@ -18,6 +19,11 @@ fi
 
 if ! command -v pacman >/dev/null 2>&1; then
   printf 'Error: pacman is not available.\n' >&2
+  exit 1
+fi
+
+if [[ ! -r $wallpaper_source ]]; then
+  printf 'Error: wallpaper not found: %s\n' "$wallpaper_source" >&2
   exit 1
 fi
 
@@ -139,6 +145,14 @@ hl.on("hyprland.start", function()\
 end)' "$hypr_config"
   fi
 
+  if ! grep -Fq 'hl.exec_cmd("hyprpaper")' "$hypr_config"; then
+    sed -i '/Configuring\/Basics\/Autostart/a\
+\
+hl.on("hyprland.start", function()\
+    hl.exec_cmd("hyprpaper")\
+end)' "$hypr_config"
+  fi
+
   if ! grep -Fq 'name = "shortcut-viewer"' "$hypr_config"; then
     sed -i '/-- Layer rules also return a handle\./i\
 hl.window_rule({\
@@ -159,6 +173,13 @@ else
 fi
 
 mkdir -p "$HOME/.config/hypr"
+wallpaper_file="$HOME/.config/hypr/wallpaper.png"
+install -m 0644 "$wallpaper_source" "$wallpaper_file"
+cat >"$HOME/.config/hypr/hyprpaper.conf" <<EOF
+preload = $wallpaper_file
+wallpaper = ,$wallpaper_file
+EOF
+
 hyprland_file="$script_dir/hyprland/installer-shortcuts.lua"
 if [[ ! -r $hyprland_file ]]; then
   printf 'Error: Hyprland configuration not found: %s\n' "$hyprland_file" >&2
